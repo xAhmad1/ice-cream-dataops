@@ -73,4 +73,4 @@ jobs:
       - name: Deploy Toolkit Configurations
         env:
           CDF_LOG_LEVEL: debug
-        run: cdf deploy --env=${{ matrix.environment }} --verbose
+        run: cdf deploy --env=${{ matrix.environment }}
