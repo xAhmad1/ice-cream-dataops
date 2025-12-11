@@ -24,51 +24,52 @@ jobs:
     strategy:
       matrix:
         include:
-          # Deploy to 'test' environment automatically, only on push to main branch
           - environment: ${{ inputs.environment != '' && inputs.environment || 'test' }}
 
     environment: ${{ matrix.environment }}
     env:
       # Cognite Toolkit environment variables
-      CDF_PROJECT: cdf-bootcamp-37-${{ matrix.environment }} # change <n> to your project number!
-
+      CDF_PROJECT: cdf-bootcamp-37-${{ matrix.environment }}
       CDF_CLUSTER: westeurope-1
-      IDP_TENANT_ID: 16e3985b-ebe8-4e24-9da4-933e21a9fc81
-      IDP_TOKEN_URL: https://login.microsoftonline.com/16e3985b-ebe8-4e24-9da4-933e21a9fc81/oauth2/v2.0/token
-      LOGIN_FLOW: client_credentials
 
-      IDP_CLIENT_ID: ${{ vars.IDP_CLIENT_ID }}
+      LOGIN_FLOW: client_credentials
+      IDP_TENANT_ID: ${{ secrets.IDP_TENANT_ID }}
+      IDP_TOKEN_URL: https://login.microsoftonline.com/${{ secrets.IDP_TENANT_ID }}/oauth2/v2.0/token
+
+      IDP_CLIENT_ID: ${{ secrets.IDP_CLIENT_ID }}
       IDP_CLIENT_SECRET: ${{ secrets.IDP_CLIENT_SECRET }}
 
-      # This project's environment variables
-      DATA_DEVELOPER_SOURCE_ID: ${{ vars.DATA_DEVELOPER_SOURCE_ID }}
+      DATA_DEVELOPER_SOURCE_ID: ${{ secrets.DATA_DEVELOPER_SOURCE_ID }}
 
-      DATA_PIPELINE_OEE_CLIENT_ID: ${{ vars.DATA_PIPELINE_OEE_CLIENT_ID }}
+      DATA_PIPELINE_OEE_CLIENT_ID: ${{ secrets.DATA_PIPELINE_OEE_CLIENT_ID }}
       DATA_PIPELINE_OEE_CLIENT_SECRET: ${{ secrets.DATA_PIPELINE_OEE_CLIENT_SECRET }}
-      DATA_PIPELINE_OEE_SOURCE_ID: ${{ vars.DATA_PIPELINE_OEE_SOURCE_ID }}
+      DATA_PIPELINE_OEE_SOURCE_ID: ${{ secrets.DATA_PIPELINE_OEE_SOURCE_ID }}
 
-      ICAPI_EXTRACTORS_CLIENT_ID: ${{ vars.ICAPI_EXTRACTORS_CLIENT_ID }}
+      ICAPI_EXTRACTORS_CLIENT_ID: ${{ secrets.ICAPI_EXTRACTORS_CLIENT_ID }}
       ICAPI_EXTRACTORS_CLIENT_SECRET: ${{ secrets.ICAPI_EXTRACTORS_CLIENT_SECRET }}
-      ICAPI_EXTRACTORS_SOURCE_ID: ${{ vars.ICAPI_EXTRACTORS_SOURCE_ID }}
+      ICAPI_EXTRACTORS_SOURCE_ID: ${{ secrets.ICAPI_EXTRACTORS_SOURCE_ID }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug Auth Vars
+      - name: Debug Auth Variables
         run: |
           echo "IDP_CLIENT_ID: $IDP_CLIENT_ID"
-          echo "IDP_TENANT_ID: $IDP_TENANT_ID"
-          echo "IDP_TOKEN_URL: $IDP_TOKEN_URL"
-          echo "LOGIN_FLOW: $LOGIN_FLOW"
           echo "IDP_CLIENT_SECRET length: ${#IDP_CLIENT_SECRET}"
-          echo "DATA_PIPELINE_OEE_CLIENT_SECRET length: ${#DATA_PIPELINE_OEE_CLIENT_SECRET}"
-          echo "ICAPI_EXTRACTORS_CLIENT_SECRET length: ${#ICAPI_EXTRACTORS_CLIENT_SECRET}"
-
-      - name: Verify and Update Toolkit Authorization
-        run: yes | cdf auth verify
+          echo "CDF_PROJECT: $CDF_PROJECT"
+          echo "LOGIN_FLOW: $LOGIN_FLOW"
+      
+      - name: Inspect Token (before deploy)
+        env:
+          CDF_LOG_LEVEL: debug
+        run: |
+          cdf auth verify
+          cdf auth inspect-token
 
       - name: Build Toolkit Configurations
         run: cdf build --env=${{ matrix.environment }}
 
       - name: Deploy Toolkit Configurations
+        env:
+          CDF_LOG_LEVEL: debug
         run: cdf deploy --env=${{ matrix.environment }}
