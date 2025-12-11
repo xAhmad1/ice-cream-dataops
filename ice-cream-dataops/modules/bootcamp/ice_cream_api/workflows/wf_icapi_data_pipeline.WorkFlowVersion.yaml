@@ -1,0 +1,56 @@
+workflowExternalId: wf_icapi_data_pipeline
+version: '1'
+workflowDefinition:
+  description: "Run pipeline: create assets → contextualize TS → extract datapoints → compute OEE"
+  tasks:
+    - externalId: create_asset_hierarchy_task
+      type: transformation
+      parameters:
+        transformation:
+          externalId: create_asset_hierarchy
+      name: create_asset_hierarchy
+      description: "Build or update asset hierarchy in CDF"
+      retries: 3
+      timeout: 3600
+      onFailure: abortWorkflow
+
+    - externalId: contextualize_ts_assets_task
+      type: transformation
+      parameters:
+        transformation:
+          externalId: contextualize_ts_assets
+      name: contextualize_ts_assets
+      description: "Link time series to assets"
+      dependsOn:
+        - externalId: create_asset_hierarchy_task
+      retries: 3
+      timeout: 3600
+      onFailure: abortWorkflow
+
+    - externalId: icapi_datapoints_extractor_task
+      type: function
+      parameters:
+        function:
+          externalId: icapi_datapoints_extractor
+          data: { "hours": 1 }
+      name: icapi_datapoints_extractor
+      description: "Extract raw datapoints from ICAPI and write to CDF"
+      dependsOn:
+        - externalId: contextualize_ts_assets_task
+      retries: 3
+      timeout: 3600
+      onFailure: abortWorkflow
+
+    - externalId: oee_timeseries_task
+      type: function
+      parameters:
+        function:
+          externalId: oee_timeseries
+          data: {}
+      name: oee_timeseries
+      description: "Compute OEE KPIs and store results"
+      dependsOn:
+        - externalId: icapi_datapoints_extractor_task
+      retries: 3
+      timeout: 3600
+      onFailure: abortWorkflow

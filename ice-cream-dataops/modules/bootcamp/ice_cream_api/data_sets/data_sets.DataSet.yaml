@@ -1,0 +1,6 @@
+- externalId: {{ icapi_ds_external_id }}
+  name: asset:ice-cream-factory-db
+  description: This dataset contains asset data for the ice cream factory database.
+  writeProtected: false
+  metadata:
+    origin: cognite-toolkit
