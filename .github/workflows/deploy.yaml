@@ -67,6 +67,17 @@ jobs:
       - name: Verify and Update Toolkit Authorization
         run: yes | cdf auth verify
 
+      - name: Debug ICAPI Extractors Token (prod)
+        if: ${{ matrix.environment == 'prod' }}
+        env:
+          # Override just for this step so we inspect ICAPI extractors client, not the toolkit client
+          IDP_CLIENT_ID: ${{ vars.ICAPI_EXTRACTORS_CLIENT_ID }}
+          IDP_CLIENT_SECRET: ${{ secrets.ICAPI_EXTRACTORS_CLIENT_SECRET }}
+        run: |
+          echo "Inspecting token for ICAPI Extractors client..."
+          cdf auth verify || true
+          cdf auth inspect-token || true
+
       - name: Build Toolkit Configurations
         run: cdf build --env=${{ matrix.environment }}
 
