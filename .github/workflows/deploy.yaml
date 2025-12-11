@@ -53,9 +53,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug Auth Vars
+        run: |
+          echo "IDP_CLIENT_ID: $IDP_CLIENT_ID"
+          echo "IDP_TENANT_ID: $IDP_TENANT_ID"
+          echo "IDP_TOKEN_URL: $IDP_TOKEN_URL"
+          echo "LOGIN_FLOW: $LOGIN_FLOW"
+          echo "IDP_CLIENT_SECRET length: ${#IDP_CLIENT_SECRET}"
+          echo "DATA_PIPELINE_OEE_CLIENT_SECRET length: ${#DATA_PIPELINE_OEE_CLIENT_SECRET}"
+          echo "ICAPI_EXTRACTORS_CLIENT_SECRET length: ${#ICAPI_EXTRACTORS_CLIENT_SECRET}"
+
       - name: Verify and Update Toolkit Authorization
         run: yes | cdf auth verify
+
       - name: Build Toolkit Configurations
         run: cdf build --env=${{ matrix.environment }}
+
       - name: Deploy Toolkit Configurations
         run: cdf deploy --env=${{ matrix.environment }}
