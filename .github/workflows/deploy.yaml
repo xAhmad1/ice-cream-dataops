@@ -20,17 +20,15 @@ jobs:
     name: Build & Deploy
     runs-on: ubuntu-latest
     container:
-      image: cognite/toolkit:0.6.53  # Make sure the toolkit version matches the version in cdf.toml
+      image: cognite/toolkit:0.6.53 
     strategy:
       matrix:
         include:
-          # Deploy to 'test' environment automatically, only on push to main branch
           - environment: ${{ inputs.environment != '' && inputs.environment || 'test' }}
 
     environment: ${{ matrix.environment }}
     env:
-      # Cognite Toolkit environment variables
-      CDF_PROJECT: cdf-bootcamp-37-${{ matrix.environment }} # change <n> to your project number!
+      CDF_PROJECT: cdf-bootcamp-37-${{ matrix.environment }}
 
       CDF_CLUSTER: westeurope-1
       IDP_TENANT_ID: 16e3985b-ebe8-4e24-9da4-933e21a9fc81
@@ -40,7 +38,6 @@ jobs:
       IDP_CLIENT_ID: ${{ vars.IDP_CLIENT_ID }}
       IDP_CLIENT_SECRET: ${{ secrets.IDP_CLIENT_SECRET }}
 
-      # This project's environment variables
       DATA_DEVELOPER_SOURCE_ID: ${{ vars.DATA_DEVELOPER_SOURCE_ID }}
 
       DATA_PIPELINE_OEE_CLIENT_ID: ${{ vars.DATA_PIPELINE_OEE_CLIENT_ID }}
